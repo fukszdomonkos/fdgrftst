@@ -22,26 +22,28 @@ frame_rate = 60
 
 render_second = 60
 # render_second = 4
+# render_second = 1
 
 background_color = Color(0x18, 0x18, 0x18, 0xff)
 circle_color = Color(0xff, 0x18, 0x18, 0xff)
 # r: float = 50
 r: float = screen_width * 0.05
-min_r: float = r*0.8
-max_r: float = r*1.2
+min_r: float = r * 0.8
+max_r: float = r * 1.2
 # pos_x: float = 300
 # pos_y: float = 300
-pos_x: float = screen_width*0.2
-pos_y: float = screen_height*0.2
+pos_x: float = screen_width * 0.2
+pos_y: float = screen_height * 0.2
 # speed_x: float = 300
 # speed_y: float = 300
 # speed_r: float = 20
-speed_x: float = screen_width*0.25
-speed_y: float = screen_height*0.25
-speed_r: float = screen_width*0.01
+speed_x: float = screen_width * 0.25
+speed_y: float = screen_height * 0.25
+speed_r: float = screen_width * 0.01
 
 
 def main():
+    set_trace_log_level(TraceLogLevel.LOG_ERROR)
     init_window(screen_width, screen_height, "Raylib")
     set_target_fps(frame_rate)
     random.seed(random_seed)
@@ -57,13 +59,20 @@ def main():
     else:
         pathlib.Path("output").mkdir(parents=True, exist_ok=True)
         ff = (ffmpeg
-              .input('pipe:', loglevel='verbose', format='rawvideo', pix_fmt='rgba', s=f'{screen_width}x{screen_height}', r=frame_rate)
+              .input('pipe:', loglevel='verbose', format='rawvideo', pix_fmt='rgba',
+                     s=f'{screen_width}x{screen_height}', r=frame_rate)
               .output('output/output.mp4')
               .overwrite_output()
               .run_async(pipe_stdin=True))
+        last_pct_logged: int = 0
         for i in range(frame_rate * render_second):
             if window_should_close():
                 break
+            if int((i + 1) / (frame_rate * render_second) * 100) > last_pct_logged:
+                last_pct_logged = int((i + 1) / (frame_rate * render_second) * 100)
+                print('================================')
+                print(f'==========PROGRESS:{last_pct_logged}%==========')
+                print('================================')
             begin_drawing()
 
             render_texture = load_render_texture(screen_width, screen_height)
@@ -77,9 +86,12 @@ def main():
                 draw_texture(render_texture.texture, 0, 0, WHITE)
             image = load_image_from_texture(render_texture.texture)
             data = ffi.buffer(image.data, screen_width * screen_height * 4)[:]
-            #flip image by rows
+            # flip image by rows
             data = b''.join([data[i:i + screen_width * 4] for i in range(0, len(data), screen_width * 4)][::-1])
             ff.stdin.write(data)
+            del data
+            unload_image(image)
+            unload_render_texture(render_texture)
 
             end_drawing()
         ff.stdin.close()
