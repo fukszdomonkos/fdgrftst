@@ -5,23 +5,25 @@ import ffmpeg
 from pyray import *
 from raylib import ffi
 
-# rendering_mode = False
-rendering_mode = True
+rendering_mode = False
+# rendering_mode = True
 
 random_seed = 186484546135
 
-# screen_width = 1280
-# screen_height = 720
+screen_width = 1280
+screen_height = 720
 # screen_width = 1920
 # screen_height = 1080
-screen_width = 3840
-screen_height = 2160
+# screen_width = 3840
+# screen_height = 2160
 
 frame_rate = 60
 # frame_rate = 20
+# frame_rate = 1
+# frame_rate = 0
 
-render_second = 60
-# render_second = 4
+# render_second = 60
+render_second = 4
 # render_second = 1
 
 background_color = Color(0x18, 0x18, 0x18, 0xff)
